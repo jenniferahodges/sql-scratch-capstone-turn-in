@@ -1,0 +1,123 @@
+1.) Get Familiar with the company
+
+	1.1) How many campaigns and sources does CoolTShirts use and how are they related?
+		SELECT COUNT (DISTINCT utm_campaign) AS 'Count of Campaigns' 
+		FROM page_visits;
+		SELECT COUNT (DISTINCT utm_source) AS 'Count of Sources' 
+		FROM page_visits;
+	
+		SELECT DISTINCT utm_campaign AS 'Campaign',
+		utm_source AS 'Source'
+		FROM page_visits;
+
+	1.2) What pages are on their website?
+		SELECT DISTINCT page_name AS 'Page Names'
+		FROM page_visits;
+
+2.) What is the user journey?
+
+	2.1) How many first touches is each campaign responsible for?
+		WITH first_touch AS (
+  		SELECT user_id, 
+  		MIN(timestamp) AS first_touch_at
+  		FROM page_visits
+  		GROUP BY user_id),
+		ft_attr AS (
+  		SELECT ft.user_id, ft.first_touch_at, pv.utm_source, pv.utm_campaign
+  		FROM first_touch ft
+  		JOIN page_visits pv
+  		ON ft.user_id = pv.user_id
+  		AND ft.first_touch_at = pv.timestamp)
+		SELECT ft_attr.utm_source AS 'Source',
+       		ft_attr.utm_campaign AS 'Campaign',
+       		COUNT(*) AS 'Count'
+		FROM ft_attr
+		GROUP BY 1, 2
+		ORDER BY 3 DESC;
+
+	2.2) How many last touches is each campaign responsible for?
+		WITH last_touch AS (
+  		SELECT user_id, 
+  		MAX(timestamp) AS last_touch_at
+  		FROM page_visits
+  		GROUP BY user_id),
+		lt_attr AS (
+  		SELECT lt.user_id, lt.last_touch_at, pv.utm_source, pv.utm_campaign
+  		FROM last_touch lt
+  		JOIN page_visits pv
+  		ON lt.user_id = pv.user_id
+  		AND lt.last_touch_at = pv.timestamp)
+		SELECT lt_attr.utm_source AS 'Source',
+       		lt_attr.utm_campaign AS 'Campaign',
+       		COUNT(*) AS 'Count'
+		FROM lt_attr
+		GROUP BY 1, 2
+		ORDER BY 3 DESC;
+	
+	2.3) How many visitors make a purchase?
+		SELECT COUNT(DISTINCT user_id) AS 'Users that made Purchases'
+		FROM page_visits
+		WHERE page_name = '4 - purchase';
+		
+		**(additional query below to count total number of users who visited the website)**
+		SELECT COUNT (DISTINCT user_id) AS 'Total Users'
+		FROM page_visits;
+
+	2.4) How many last touches on the purchase page is each campaign responsible for?
+		WITH last_touch AS (
+  		SELECT user_id, 
+  		MAX(timestamp) AS last_touch_at
+  		FROM page_visits
+  		WHERE page_name = '4 - purchase'
+  		GROUP BY user_id),
+		lt_attr AS (
+  		SELECT lt.user_id, lt.last_touch_at, pv.utm_source, pv.utm_campaign
+  		FROM last_touch lt
+  		JOIN page_visits pv
+  		ON lt.user_id = pv.user_id
+  		AND lt.last_touch_at = pv.timestamp)
+		SELECT lt_attr.utm_source AS 'Source',
+       		lt_attr.utm_campaign AS 'Campaign',
+       		COUNT(*) AS 'Count'
+		FROM lt_attr
+		GROUP BY 1, 2
+		ORDER BY 3 DESC;
+
+	2.5) What is the typical user journey?
+
+	SELECT COUNT(DISTINCT user_id) AS 'User Count - Landing_Page'
+	FROM page_visits
+	WHERE page_name = '1 - landing_page';
+
+	SELECT COUNT(DISTINCT user_id) AS 'User Count - Shopping_Cart'
+	FROM page_visits
+	WHERE page_name = '2 - shopping_cart';
+
+	SELECT COUNT(DISTINCT user_id) AS 'User Count - Checkout'
+	FROM page_visits
+	WHERE page_name = '3 - checkout';
+
+	SELECT COUNT(DISTINCT user_id) AS 'User Count - Purchase'
+	FROM page_visits
+	WHERE page_name = '4 - purchase';
+
+	**(No queries run for the graphs. The graphs were created in excel and the information was used from previous queries)**
+
+3.) Optimize the campaign budget
+	3.1) CoolTShirts can re-invest 5 campaigns. Which should they pick and why?
+	
+	**(No queries run for the chart. The chart was created in excel and the information was used from previous queries)**
+
+	Extra results worth mentioning
+
+	SELECT user_id, page_name, timestamp, utm_campaign
+	FROM page_visits
+	WHERE user_id = '29180';
+
+	SELECT user_id, page_name, timestamp, utm_campaign
+	FROM page_visits
+	WHERE user_id = '76466';
+
+	SELECT user_id, page_name, timestamp, utm_campaign
+	FROM page_visits
+	WHERE user_id = '94852';
